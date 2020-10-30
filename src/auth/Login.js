@@ -1,7 +1,7 @@
 import React from 'react'
 import { firebase as firebaseAuth } from '@react-native-firebase/auth'
 import { firebase } from '@react-native-firebase/firestore'
-import { Dimensions, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { AsyncStorage, Button, Dimensions, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 export default class Login extends React.Component {
 
@@ -15,14 +15,35 @@ export default class Login extends React.Component {
         }
     }
 
+    async saveData() {
+        await AsyncStorage.setItem("email", this.state.email)
+        await AsyncStorage.setItem("password", this.state.password)
+        const user = await firebaseAuth.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
+        await this.state.navigation["navigation"].replace("AddTodo", { id: user.user.uid })
+    }
+    async readData() {
+        try {
+            if (await AsyncStorage.getItem('email') != null) {
+                console.log(await AsyncStorage.getItem('email'))
+                console.log(await AsyncStorage.getItem('password'))
+                this.setState({ email: await AsyncStorage.getItem('email'), password: await AsyncStorage.getItem('password') })
+                const user = await firebaseAuth.auth().signInWithEmailAndPassword(this.state.email, this.state.password)
+                await this.state.navigation["navigation"].replace("AddTodo", { id: user.user.uid })
+            }
+        } catch (e) {
+            console.log(e)
+        }
+    }
+
     async login(email, password) {
         if (email == "" && password == "") {
             this.setState({ error: "Campo(s) nulos" })
 
         } else {
             try {
-                const user = await firebaseAuth.auth().signInWithEmailAndPassword(email, password)
-                this.state.navigation["navigation"].replace("AddTodo", { id: user.user.uid })
+                await firebaseAuth.auth().signInWithEmailAndPassword(email, password)
+                await this.saveData();
+                //this.state.navigation["navigation"].replace("AddTodo", { id: user.user.uid })
             } catch (error) {
                 if (error.code === "auth/wrong-password") {
                     console.log("Senha errada")
@@ -46,14 +67,13 @@ export default class Login extends React.Component {
     }
 
     async cadastro(email, password) {
-        console.log(email, password)
         if (email == "" && password == "") {
             this.setState({ error: "Campo(s) nulos" })
         } else {
             try {
                 const user = await firebaseAuth.auth().createUserWithEmailAndPassword(email, password)
                 await firebase.firestore().collection("users").doc(user.user.uid).set({ email: email })
-                this.state.navigation["navigation"].replace("AddTodo", { id: user.user.uid })
+                await this.saveData()
             } catch (error) {
                 if (error.code === "auth/email-already-in-use") {
                     console.log("Email already in use")
@@ -65,6 +85,10 @@ export default class Login extends React.Component {
                 console.log(error)
             }
         }
+    }
+
+    async componentDidMount() {
+        await this.readData()
     }
 
     render() {

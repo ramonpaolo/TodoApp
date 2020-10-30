@@ -1,5 +1,5 @@
 import React from "react"
-import { Dimensions, FlatList, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { AsyncStorage, Dimensions, FlatList, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import Todo from "../todo/Todo"
 import { firebase } from "@react-native-firebase/firestore"
 
@@ -7,6 +7,7 @@ export default class AddTodo extends React.Component {
 
     constructor(props) {
         super(props)
+        console.log(props)
         this.state = {
             refreshing: false,
             text: "",
@@ -16,6 +17,9 @@ export default class AddTodo extends React.Component {
         }
     }
 
+    async deleteData(){
+        await AsyncStorage.clear()
+    }
 
     async uploadMessage() {
         try {
@@ -28,18 +32,18 @@ export default class AddTodo extends React.Component {
     }
 
     async getMessages() {
-        try{
+        try {
             const user = await firebase.firestore().collection('users').doc(this.state.idUser).get()
             for (var x = 0; x < 60; x++) {
-                try{
+                try {
                     console.log(await user.data()["todoList"][x])
                     this.state.list.push(
                         { "name": user.data()["todoList"][x]["name"], "text": user.data()["todoList"][x]["text"], "id": user.data()["todoList"][x]["id"] })
-                }catch (error) {
+                } catch (error) {
                     return;
                 }
             }
-        }catch (error){
+        } catch (error) {
             print(error)
         }
     }
@@ -58,11 +62,17 @@ export default class AddTodo extends React.Component {
 
     async componentDidMount() {
         await this.getMessages()
-        this.setState({ list: this.state.list})
+        this.setState({ list: this.state.list })
     }
 
     render() {
         return <View renderToHardwareTextureAndroid={true} style={{ backgroundColor: "black" }}>
+
+            <TouchableOpacity style={{ backgroundColor: "white", marginTop: 10, width: 220, height: 20, alignSelf: "center", borderRadius: 40, marginBottom: 2 }} onPress={() => this.deleteData()}>
+                <Text style={{ color: "black", alignSelf: "center" }}>
+                    Remover login automatico
+                </Text>
+                </TouchableOpacity>
 
             <TextInput value={this.state.name} onChangeText={(name) => this.setState({ name: name })} style={style.textInput} placeholder="Nome atividade" />
             <TextInput onChangeText={(text) => this.setState({ text: text })} style={style.textInput} value={this.state.text} keyboardType="default"

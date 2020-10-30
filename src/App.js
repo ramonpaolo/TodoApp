@@ -13,6 +13,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 const Stack = createStackNavigator()
 
 export default function App() {
+    
     return <SafeAreaProvider>
         <NavigationContainer>
             <Stack.Navigator initialRouteName="Login" screenOptions={{ headerTitleAlign: "center", title: "TodoApp" }} >
