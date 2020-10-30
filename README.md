@@ -2,7 +2,7 @@
 
 ## Feito em React-Native com Firebase
 
-[ ] - FireAuth
+[x] - FireAuth
 [x] - Firestore
 
 <a href="./app-release.apk">Baixar APK</a>
